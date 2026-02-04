@@ -57,7 +57,7 @@ function handleFocusChange(event) {
         element.classList.remove("selectbox_is_focused");
         setTimeout(function() {
             document.querySelector(`.${key}_selectbox`).dataset.visible = "none";
-        }, 100);
+        }, 200);
     }
 }
 
@@ -69,13 +69,45 @@ function handleFocusChangeSize(event) {
     }
 }
 
-function openHistory() {
+async function openHistory() {
     if(document.getElementById("size").value == null || document.getElementById("size").value == '') {
         document.getElementById("size").value = 10000;
-        document.getElementById("apiLink").href = `https://api.chzzk.naver.com/commercial/v1/product/purchase/history?page=0&size=${document.getElementById("size").value}&searchYear=${document.getElementById("searchYear").value}`;
     }
 
-    document.getElementById("apiLink").click();
+    const size = document.getElementById("size").value;
+    const searchYear = document.getElementById("searchYear").value;
+    const apiUrl = `https://api.chzzk.naver.com/commercial/v1/product/purchase/history?page=0&size=${size}&searchYear=${searchYear}`;
+
+    document.getElementById("apiLink").href = apiUrl;
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if(!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if(data.code == 200) {
+            channels = [];
+            document.getElementById("fileList").innerText = `${searchYear}년 자동 조회 완료`;
+            document.getElementById("channelHistoryWrap").dataset.visible = "none";
+
+            convertCheeseDataArrToChannelData(data.content.data);
+            initializationHtml();
+            makeFileDataList();
+        } else {
+            alert(data.message || '조회 실패');
+        }
+    } catch (error) {
+        // CORS 에러 또는 네트워크 에러 시 기존 방식으로 폴백
+        console.log('자동 조회 실패, 수동 조회로 전환:', error.message);
+        document.getElementById("apiLink").click();
+    }
 }
 
 function chgSearchYear(yearParam) {
