@@ -1,17 +1,3 @@
-// ==UserScript==
-// @name         치지직 후원/구독선물 내역 조회
-// @namespace    https://chzzk.naver.com
-// @version      1.0.7
-// @description  치지직 스트리머 별 후원 내역 및 구독선물 내역을 확인합니다
-// @author       Jinhwan99
-// @match        https://chzzk.naver.com/*
-// @icon         https://ssl.pstatic.net/static/nng/glive/icon/favicon.png
-// @updateURL    https://raw.githubusercontent.com/Jinhwan99/ChzzkCheeseHistory/main/userscript/ChzzkCheeseHistory.user.js
-// @downloadURL  https://raw.githubusercontent.com/Jinhwan99/ChzzkCheeseHistory/main/userscript/ChzzkCheeseHistory.user.js
-// @grant        none
-// @run-at       document-end
-// ==/UserScript==
-
 (function() {
     'use strict';
 
