@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         치지직 후원/구독선물 내역 조회
 // @namespace    https://chzzk.naver.com
-// @version      1.0.3
+// @version      1.0.6
 // @description  치지직 스트리머 별 후원 내역 및 구독선물 내역을 확인합니다
 // @author       alsrbxo0428
 // @match        https://chzzk.naver.com/*
@@ -270,6 +270,7 @@
             text-align: center;
             width: 170px;
             position: relative;
+            overflow: visible;
         }
         .cch-channel-item:hover {
             transform: scale(1.03);
@@ -287,8 +288,10 @@
             width: 30px;
             height: 30px;
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 12px;
+            left: 20px;
+            z-index: 10;
+            display: block;
         }
         .cch-channel-item p {
             margin: 8px 0 0 0;
@@ -668,9 +671,6 @@
             chart: null
         }
     };
-
-    const yearArr = [2023, 2024, 2025, 2026];
-    const monthArr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     // Shadow DOM 내부 요소 접근 헬퍼
     const $ = (selector) => shadow.querySelector(selector);
@@ -1095,13 +1095,14 @@
 
             channel.yearData.sort((a, b) => a.year - b.year);
 
-            for (const year of yearArr) {
-                const yearData = channel.yearData.find(yd => yd.year === year);
-                if (!yearData) continue;
+            for (const yearData of channel.yearData) {
+                const year = yearData.year;
+                yearData.monthData.sort((a, b) => a.month - b.month);
 
-                for (const month of monthArr) {
-                    const monthData = yearData.monthData.find(md => md.month === month);
-                    if (!monthData || !monthData.dayData) continue;
+                for (const monthData of yearData.monthData) {
+                    if (!monthData.dayData) continue;
+                    const month = monthData.month;
+                    monthData.dayData.sort((a, b) => a.day - b.day);
 
                     for (const dayData of monthData.dayData) {
                         channel.channelTotal += dayData.dayTotal;
@@ -1150,13 +1151,14 @@
 
             channel.yearData.sort((a, b) => a.year - b.year);
 
-            for (const year of yearArr) {
-                const yearData = channel.yearData.find(yd => yd.year === year);
-                if (!yearData) continue;
+            for (const yearData of channel.yearData) {
+                const year = yearData.year;
+                yearData.monthData.sort((a, b) => a.month - b.month);
 
-                for (const month of monthArr) {
-                    const monthData = yearData.monthData.find(md => md.month === month);
-                    if (!monthData || !monthData.dayData) continue;
+                for (const monthData of yearData.monthData) {
+                    if (!monthData.dayData) continue;
+                    const month = monthData.month;
+                    monthData.dayData.sort((a, b) => a.day - b.day);
 
                     for (const dayData of monthData.dayData) {
                         channel.channelTotal += dayData.dayTotal;
@@ -1203,10 +1205,10 @@
         const container = $('#cchCheeseChannelList');
         container.innerHTML = channels.map(ch => `
             <div class="cch-channel-item" data-id="${ch.channelId}">
-                ${ch.cheese04 ? '<img class="badge-img" src="https://ssl.pstatic.net/static/nng/glive/icon/cheese_badge_4.png">' :
-                  ch.cheese03 ? '<img class="badge-img" src="https://ssl.pstatic.net/static/nng/glive/icon/cheese_badge_3.png">' :
-                  ch.cheese02 ? '<img class="badge-img" src="https://ssl.pstatic.net/static/nng/glive/icon/cheese_badge_2.png">' :
-                  ch.cheese01 ? '<img class="badge-img" src="https://ssl.pstatic.net/static/nng/glive/icon/cheese_badge_1.png">' : ''}
+                ${ch.cheese04 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/cheese04.png">' :
+                  ch.cheese03 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/cheese03.png">' :
+                  ch.cheese02 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/cheese02.png">' :
+                  ch.cheese01 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/cheese01.png">' : ''}
                 <img class="channel-img" src="${ch.channelImageUrl}" alt="${ch.channelName}">
                 <p>${ch.channelName}</p>
                 <p>${ch.channelTotal.toLocaleString()}원</p>
@@ -1228,6 +1230,13 @@
         const container = $('#cchSubChannelList');
         container.innerHTML = channels.map(ch => `
             <div class="cch-channel-item" data-id="${ch.channelId}">
+                ${ch.subscription1000 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_1000.png">' :
+                  ch.subscription500 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_500.png">' :
+                  ch.subscription250 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_250.png">' :
+                  ch.subscription100 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_100.png">' :
+                  ch.subscription50 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_50.png">' :
+                  ch.subscription10 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_10.png">' :
+                  ch.subscription1 ? '<img class="badge-img" src="https://chzzk-cheese-history.pages.dev/images/gift_sub_1.png">' : ''}
                 <img class="channel-img" src="${ch.channelImageUrl}" alt="${ch.channelName}">
                 <p>${ch.channelName}</p>
                 <p>총 ${ch.channelTotal}회</p>
