@@ -1,20 +1,8 @@
 (function() {
     'use strict';
 
-    // Chart.js 동적 로드
-    const loadChartJS = () => {
-        return new Promise((resolve, reject) => {
-            if (typeof Chart !== 'undefined') {
-                resolve();
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    };
+    // Chart.js는 manifest.json에서 미리 로드됨
+    const loadChartJS = () => Promise.resolve();
 
     // ==================== CSS ====================
     const styles = `

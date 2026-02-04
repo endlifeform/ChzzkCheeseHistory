@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "치지직 후원/구독선물 내역 조회",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "치지직 스트리머 별 후원 내역 및 구독선물 내역을 확인합니다",
   "permissions": [],
   "content_scripts": [
     {
       "matches": ["https://chzzk.naver.com/*"],
-      "js": ["content.js"],
+      "js": ["chart.min.js", "content.js"],
       "run_at": "document_end"
     }
   ],
