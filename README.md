@@ -4,10 +4,44 @@
 개인적으로 스트리머별 후원 내역을 확인하고 싶어 제작했으며, Windows OS 및 PC에서의 사용을 전제로 제작하였습니다.\
 추후 치지직의 API 데이터 제공 방식 및 구조가 변경될 경우 기능이 정상적으로 동작하지 않을 수 있습니다.
 
-오픈소스 라이브러리
+## 사용 방법
+
+### 방법 1: 유저스크립트 (권장)
+CORS 문제 없이 자동 조회가 가능합니다.
+
+#### 설치 방법
+1. [Tampermonkey](https://www.tampermonkey.net/) 확장 프로그램 설치
+   - [Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - [Firefox](https://addons.mozilla.org/ko/firefox/addon/tampermonkey/)
+   - [Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
+2. Tampermonkey 대시보드 → "새 스크립트 만들기"
+3. [userscript/ChzzkCheeseHistory.user.js](./userscript/ChzzkCheeseHistory.user.js) 내용 복사 → 붙여넣기 → 저장
+
+#### 사용 방법
+1. [치지직](https://chzzk.naver.com)에 로그인
+2. 화면 우측 하단의 🧀 버튼 클릭
+3. "조회" 버튼 클릭 → 자동으로 데이터 조회
+
+### 방법 2: 웹사이트
+https://chzzk-cheese-history.pages.dev 에서 사용
+
+#### 자동 조회 (CORS 확장 프로그램 필요)
+- **Chrome**: [Allow CORS](https://chromewebstore.google.com/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf) 또는 [CORS Unblock](https://chromewebstore.google.com/detail/cors-unblock/lfhmikememgdcahcdlaciloancbhjino)
+- **Firefox**: [CORS Everywhere](https://addons.mozilla.org/ko/firefox/addon/cors-everywhere/)
+- **Edge**: [Allow CORS](https://microsoftedge.microsoft.com/addons/detail/allow-cors-accesscontro/bhjepjpgngghppolkjdhckmnfphffdag)
+
+#### 수동 조회 (확장 프로그램 없이)
+1. "조회" 버튼 클릭 → 새 탭에서 API 결과 페이지 열림
+2. `Ctrl + A` (전체 선택) → `Ctrl + C` (복사)
+3. "직접입력" 버튼 클릭 → 붙여넣기 → 등록
+
+## 오픈소스 라이브러리
 - `Chart.js`
 
 ## 업데이트 내역
+
+### 2026.02.04
+- 유저스크립트 버전 추가 (CORS 문제 해결)
 
 ### 2026.01.04
 - 2026년 안나오는 오류 수정
