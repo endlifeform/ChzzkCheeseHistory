@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         치지직 후원/구독선물 내역 조회
 // @namespace    https://chzzk.naver.com
-// @version      1.0.2
+// @version      1.0.3
 // @description  치지직 스트리머 별 후원 내역 및 구독선물 내역을 확인합니다
 // @author       alsrbxo0428
 // @match        https://chzzk.naver.com/*
@@ -473,6 +473,34 @@
             max-width: 100%;
             height: auto !important;
         }
+        .cch-date-label {
+            font-size: 13px;
+            color: #555;
+            margin-right: 5px;
+        }
+        .cch-date-input {
+            width: 140px;
+        }
+        .cch-progress {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+        .cch-progress-bar {
+            height: 6px;
+            background: #bbdefb;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .cch-progress-bar-fill {
+            height: 100%;
+            background: #1976d2;
+            transition: width 0.3s;
+        }
     `;
 
     // ==================== HTML ====================
@@ -495,16 +523,15 @@
                         <div class="cch-card">
                             <h4>후원 내역 조회</h4>
                             <div class="cch-form-row">
-                                <select id="cchCheeseYear" class="cch-select">
-                                    <option value="2023">2023년</option>
-                                    <option value="2024">2024년</option>
-                                    <option value="2025">2025년</option>
-                                    <option value="2026" selected>2026년</option>
-                                </select>
+                                <label class="cch-date-label">시작일</label>
+                                <input type="date" id="cchCheeseStartDate" class="cch-input cch-date-input" value="2024-01-01">
+                                <label class="cch-date-label">종료일</label>
+                                <input type="date" id="cchCheeseEndDate" class="cch-input cch-date-input">
                                 <input type="number" id="cchCheeseSize" class="cch-input" value="10000" placeholder="조회 개수" style="width: 100px;">
                                 <button id="cchCheeseFetch" class="cch-btn cch-btn-primary">조회</button>
                             </div>
                             <div id="cchCheeseStatus" class="cch-status" style="display:none;"></div>
+                            <div id="cchCheeseProgress" class="cch-progress" style="display:none;"></div>
                         </div>
                         <div class="cch-card">
                             <div class="cch-total-info" id="cchCheeseTotalInfo">전체 후원 금액 : 0원</div>
@@ -796,34 +823,87 @@
 
     // 치즈 후원 내역 조회
     async function fetchCheeseHistory() {
-        const year = $('#cchCheeseYear').value;
+        const startDateStr = $('#cchCheeseStartDate').value;
+        const endDateStr = $('#cchCheeseEndDate').value;
         const size = $('#cchCheeseSize').value || 10000;
         const statusEl = $('#cchCheeseStatus');
+        const progressEl = $('#cchCheeseProgress');
+
+        if (!startDateStr || !endDateStr) {
+            showStatus(statusEl, 'error', '시작일과 종료일을 모두 선택해주세요.');
+            return;
+        }
+
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+
+        if (startDate > endDate) {
+            showStatus(statusEl, 'error', '시작일이 종료일보다 늦습니다.');
+            return;
+        }
+
+        // 조회할 년도 목록 생성
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        const yearsToFetch = [];
+        for (let y = startYear; y <= endYear; y++) {
+            yearsToFetch.push(y);
+        }
 
         showStatus(statusEl, 'loading', '조회 중...');
+        progressEl.style.display = 'block';
 
         try {
-            const response = await fetch(
-                `https://api.chzzk.naver.com/commercial/v1/product/purchase/history?page=0&size=${size}&searchYear=${year}`,
-                { method: 'GET', credentials: 'include' }
-            );
+            state.cheese.channels = [];
+            let totalCount = 0;
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            for (let i = 0; i < yearsToFetch.length; i++) {
+                const year = yearsToFetch[i];
+                const progress = Math.round(((i) / yearsToFetch.length) * 100);
+                progressEl.innerHTML = `
+                    <div>${year}년 조회 중... (${i + 1}/${yearsToFetch.length})</div>
+                    <div class="cch-progress-bar"><div class="cch-progress-bar-fill" style="width: ${progress}%"></div></div>
+                `;
 
-            const data = await response.json();
+                const response = await fetch(
+                    `https://api.chzzk.naver.com/commercial/v1/product/purchase/history?page=0&size=${size}&searchYear=${year}`,
+                    { method: 'GET', credentials: 'include' }
+                );
 
-            if (data.code === 200) {
-                state.cheese.channels = [];
-                convertCheeseData(data.content.data);
-                rebuildCheeseChannels();
-                renderCheeseChannelList();
-                updateCheeseTotalInfo();
+                if (!response.ok) throw new Error(`HTTP ${response.status} (${year}년)`);
 
-                showStatus(statusEl, 'success', `${year}년 후원 내역 ${data.content.data.length}건 조회 완료`);
-            } else {
-                throw new Error(data.message || '조회 실패');
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    // 날짜 범위 필터링
+                    const filteredData = data.content.data.filter(item => {
+                        const itemDate = new Date(item.purchaseDate.split(' ')[0]);
+                        return itemDate >= startDate && itemDate <= endDate;
+                    });
+                    convertCheeseData(filteredData);
+                    totalCount += filteredData.length;
+                } else {
+                    throw new Error(data.message || `조회 실패 (${year}년)`);
+                }
             }
+
+            rebuildCheeseChannels();
+            renderCheeseChannelList();
+            updateCheeseTotalInfo();
+
+            progressEl.innerHTML = `
+                <div>완료!</div>
+                <div class="cch-progress-bar"><div class="cch-progress-bar-fill" style="width: 100%"></div></div>
+            `;
+
+            const dateRange = `${startDateStr} ~ ${endDateStr}`;
+            showStatus(statusEl, 'success', `${dateRange} 후원 내역 ${totalCount}건 조회 완료`);
+
+            setTimeout(() => {
+                progressEl.style.display = 'none';
+            }, 2000);
         } catch (error) {
+            progressEl.style.display = 'none';
             showStatus(statusEl, 'error', `오류: ${error.message}`);
         }
     }
@@ -1408,5 +1488,10 @@
     }).catch((err) => {
         console.error('[치지직 후원내역] Chart.js 로드 실패:', err);
     });
+
+    // 종료일 기본값을 오늘로 설정
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    $('#cchCheeseEndDate').value = todayStr;
 
 })();
