@@ -828,6 +828,7 @@
 
         showStatus(statusEl, 'loading', '조회 중...');
         progressEl.style.display = 'block';
+        $('#cchCheeseDetail').classList.remove('show');
 
         try {
             state.cheese.channels = [];
@@ -890,6 +891,7 @@
         const statusEl = $('#cchSubStatus');
 
         showStatus(statusEl, 'loading', '조회 중...');
+        $('#cchSubDetail').classList.remove('show');
 
         try {
             const response = await fetch(
