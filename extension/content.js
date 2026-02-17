@@ -1471,16 +1471,44 @@
 
     // ==================== 플로팅 버튼 표시 설정 ====================
     const floatingBtn = $('#cchFloatingBtn');
+    const defaultPageSettings = { chzzkMain: true, chzzkLive: true, naverGame: true };
 
-    chrome.storage.local.get('floatingButton', (result) => {
-        if (result.floatingButton === false) {
-            floatingBtn.style.display = 'none';
+    function getPageType() {
+        const url = location.href;
+        if (/^https:\/\/game\.naver\.com\/profile/.test(url)) return 'naverGame';
+        if (/^https:\/\/chzzk\.naver\.com\/live\//.test(url)) return 'chzzkLive';
+        if (/^https:\/\/chzzk\.naver\.com\//.test(url)) return 'chzzkMain';
+        return null;
+    }
+
+    function updateVisibility() {
+        chrome.storage.local.get(['floatingButton', 'pageSettings'], (result) => {
+            if (result.floatingButton === false) {
+                floatingBtn.style.display = 'none';
+                return;
+            }
+            const ps = Object.assign({}, defaultPageSettings, result.pageSettings);
+            const pageType = getPageType();
+            const visible = pageType ? ps[pageType] !== false : false;
+            floatingBtn.style.display = visible ? 'flex' : 'none';
+        });
+    }
+
+    updateVisibility();
+
+    // SPA 대응: URL 변경 감지
+    let lastUrl = location.href;
+    const observer = new MutationObserver(() => {
+        if (location.href !== lastUrl) {
+            lastUrl = location.href;
+            updateVisibility();
         }
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     chrome.runtime.onMessage.addListener((message) => {
-        if (message.type === 'CCH_FLOATING_TOGGLE') {
-            floatingBtn.style.display = message.enabled ? 'flex' : 'none';
+        if (message.type === 'CCH_FLOATING_TOGGLE' || message.type === 'CCH_PAGE_SETTING_CHANGED') {
+            updateVisibility();
         }
     });
 
