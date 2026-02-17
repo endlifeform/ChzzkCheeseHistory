@@ -1469,6 +1469,21 @@
         return calendar;
     }
 
+    // ==================== 플로팅 버튼 표시 설정 ====================
+    const floatingBtn = $('#cchFloatingBtn');
+
+    chrome.storage.local.get('floatingButton', (result) => {
+        if (result.floatingButton === false) {
+            floatingBtn.style.display = 'none';
+        }
+    });
+
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'CCH_FLOATING_TOGGLE') {
+            floatingBtn.style.display = message.enabled ? 'flex' : 'none';
+        }
+    });
+
     // 초기화
     loadChartJS().then(() => {
         console.log('[치지직 후원내역] 스크립트 로드 완료');
