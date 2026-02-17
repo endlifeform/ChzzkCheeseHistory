@@ -13,7 +13,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chzzk.naver.com/*"],
+      "matches": ["https://chzzk.naver.com/*", "https://game.naver.com/*"],
       "js": ["chart.min.js", "content.js"],
       "run_at": "document_end"
     }
